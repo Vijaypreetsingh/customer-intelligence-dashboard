@@ -530,7 +530,6 @@ with analytics_col2:
     fig_seg_dist = px.sunburst(
         filtered_df,
         path=['Cluster', 'Gender'],
-        values=['Customer ID'],
         title='Customer Distribution: Segment → Gender',
         color_discrete_sequence=px.colors.qualitative.Set2
     )
@@ -614,90 +613,3 @@ st.markdown("""
     <p>Last Updated: 2026 | Data Points: {:,} | Segments: {}</p>
 </div>
 """.format(len(df), len(df['Cluster'].unique())), unsafe_allow_html=True)
-with col2:
-    st.metric('Total Orders', filtered_df['InvoiceNo'].nunique())
-with col3:
-    st.metric('Total Customers', filtered_df['CustomerID'].nunique())
-with col4:
-    st.metric('Total Products Sold', filtered_df['Quantity'].sum())
-with col5:
-    avg_order = filtered_df.groupby('InvoiceNo')['TotalPrice'].sum().mean()
-    st.metric('Average Order Value', f"£{avg_order:,.2f}")
-
-# Visualizations
-st.header('Sales Trend')
-sales_trend = filtered_df.groupby('InvoiceDate')['TotalPrice'].sum().reset_index()
-fig = px.line(sales_trend, x='InvoiceDate', y='TotalPrice', title='Revenue Over Time')
-st.plotly_chart(fig, use_container_width=True)
-
-st.header('Top Selling Products')
-top_products = filtered_df.groupby('Description')['TotalPrice'].sum().nlargest(10).reset_index()
-fig = px.bar(top_products, x='TotalPrice', y='Description', orientation='h', title='Top 10 Products by Revenue')
-st.plotly_chart(fig, use_container_width=True)
-
-st.header('Country Sales Analysis')
-country_sales = filtered_df.groupby('Country')['TotalPrice'].sum().reset_index()
-fig = px.bar(country_sales, x='Country', y='TotalPrice', title='Revenue by Country')
-st.plotly_chart(fig, use_container_width=True)
-
-st.header('Monthly Revenue')
-monthly_sales = filtered_df.groupby(['Year', 'Month'])['TotalPrice'].sum().reset_index()
-monthly_sales['Date'] = pd.to_datetime(monthly_sales[['Year', 'Month']].assign(DAY=1))
-fig = px.line(monthly_sales, x='Date', y='TotalPrice', title='Monthly Sales Trend')
-st.plotly_chart(fig, use_container_width=True)
-
-st.header('Customer Analysis')
-top_customers = filtered_df.groupby('CustomerID')['TotalPrice'].sum().nlargest(10).reset_index()
-fig = px.bar(top_customers, x='TotalPrice', y='CustomerID', orientation='h', title='Top Customers by Spending')
-st.plotly_chart(fig, use_container_width=True)
-
-st.header('Product Performance')
-freq_products = filtered_df['Description'].value_counts().nlargest(10).reset_index()
-freq_products.columns = ['Product', 'Frequency']
-fig = px.bar(freq_products, x='Frequency', y='Product', orientation='h', title='Most Frequently Purchased Products')
-st.plotly_chart(fig, use_container_width=True)
-
-st.header('Order Distribution')
-order_country = filtered_df.groupby('Country')['InvoiceNo'].nunique().reset_index()
-fig = px.choropleth(order_country, locations='Country', locationmode='country names', color='InvoiceNo', title='Orders by Country')
-st.plotly_chart(fig, use_container_width=True)
-
-st.header('Basket Analysis')
-avg_items = filtered_df.groupby('InvoiceNo')['Quantity'].sum().mean()
-st.metric('Average Items per Order', f"{avg_items:.2f}")
-
-# RFM Analysis
-st.header('Customer Segmentation (RFM Analysis)')
-snapshot_date = df['InvoiceDate'].max() + datetime.timedelta(days=1)
-rfm = df.groupby('CustomerID').agg({
-    'InvoiceDate': lambda x: (snapshot_date - x.max()).days,
-    'InvoiceNo': 'nunique',
-    'TotalPrice': 'sum'
-}).rename(columns={'InvoiceDate': 'Recency', 'InvoiceNo': 'Frequency', 'TotalPrice': 'Monetary'})
-
-rfm['R_Score'] = pd.qcut(rfm['Recency'], 4, labels=False, duplicates='drop')
-rfm['F_Score'] = pd.qcut(rfm['Frequency'], 4, labels=False, duplicates='drop')
-rfm['M_Score'] = pd.qcut(rfm['Monetary'], 4, labels=False, duplicates='drop')
-rfm['RFM_Score'] = rfm['R_Score'].astype(str) + rfm['F_Score'].astype(str) + rfm['M_Score'].astype(str)
-
-def segment(rfm_score):
-    if rfm_score in ['444', '443', '434', '344']:
-        return 'High Value'
-    elif rfm_score[1] == '4':
-        return 'Loyal'
-    elif rfm_score[0] == '4':
-        return 'At Risk'
-    else:
-        return 'Others'
-
-rfm['Segment'] = rfm['RFM_Score'].apply(segment)
-segment_count = rfm['Segment'].value_counts().reset_index()
-segment_count.columns = ['Segment', 'Count']
-fig = px.bar(segment_count, x='Segment', y='Count', title='Customer Segments')
-st.plotly_chart(fig, use_container_width=True)
-
-# Data Table
-st.header('Transaction Data')
-st.dataframe(filtered_df)
-csv = filtered_df.to_csv(index=False)
-st.download_button('Download Filtered Data', csv, 'filtered_data.csv', 'text/csv')
