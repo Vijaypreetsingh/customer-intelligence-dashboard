@@ -119,8 +119,9 @@ def perform_clustering(df, n_clusters=None):
         # Calculate elbow point
         n_clusters = 4  # Default
         for i in range(1, len(inertias) - 1):
-            if (inertias[i-1] - inertias[i]) - (inertias[i] - inertias[i+1]) > 
-                (inertias[1] - inertias[0]) * 0.05:
+            acceleration = (inertias[i-1] - inertias[i]) - (inertias[i] - inertias[i+1])
+            threshold = (inertias[1] - inertias[0]) * 0.05
+            if acceleration > threshold:
                 n_clusters = i + 1
                 break
     
