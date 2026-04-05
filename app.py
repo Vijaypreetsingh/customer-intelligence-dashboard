@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from scipy.spatial.distance import cdist
+from pathlib import Path
 import io
 import warnings
 warnings.filterwarnings('ignore')
@@ -61,9 +62,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Data Loading and Caching
+DATA_FILE = Path(__file__).parent / 'customer_segmentation_data.csv'
+
 @st.cache_data
 def load_data():
-    df = pd.read_csv('customer_segmentation_data.csv')
+    if not DATA_FILE.exists():
+        st.error(
+            'Data file not found. Please make sure customer_segmentation_data.csv is located in the app directory.'
+        )
+        st.stop()
+
+    df = pd.read_csv(DATA_FILE)
     return df
 
 @st.cache_data
