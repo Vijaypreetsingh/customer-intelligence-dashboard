@@ -1,7 +1,8 @@
 # 🎯 Customer Intelligence Dashboard
 
 An advanced, ML-powered customer analytics dashboard built with Python, Streamlit, Pandas, Plotly, and Scikit-learn. This dashboard performs automated customer segmentation using K-Means clustering and provides comprehensive business intelligence insights.
-link - 
+link - https://pl4pkzfqy5xqpa3xvhvjqs.streamlit.app/
+
 ## 📊 Overview
 
 The Customer Intelligence Dashboard is a modern business intelligence application that analyzes customer behavior, demographics, and spending patterns using unsupervised machine learning. It automatically segments customers into distinct groups based on Age, Income Level, and Coverage Amount, providing actionable insights for business strategy.
